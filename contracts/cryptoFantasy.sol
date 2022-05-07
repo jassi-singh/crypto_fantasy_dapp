@@ -17,10 +17,13 @@ contract CryptoFantasy is Ownable {
         address winner;
         uint256 totalTeams;
         address[] teamOwners;
+        uint256 startDateTime;
+        uint256 endDateTime;
     }
     struct Team {
         address teamOwner;
         uint256[11] playerIds;
+        uint256 score;
     }
 
     mapping(uint256 => Contest) public totalContest;
@@ -30,7 +33,12 @@ contract CryptoFantasy is Ownable {
 
     ///@notice allow only the contract owner to create the new contests which users can join and play
     ///@param matchId : match id of the real match
-    function createContest(uint256 matchId, uint256 fee) external onlyOwner {
+    function createContest(
+        uint256 matchId,
+        uint256 fee,
+        uint256 startDateTime,
+        uint256 endDateTime
+    ) external onlyOwner {
         totalContest[numberOfContests] = Contest(
             numberOfContests,
             matchId,
@@ -38,8 +46,9 @@ contract CryptoFantasy is Ownable {
             0,
             address(0),
             0,
-            new address[](0)
-            /// TODO : add start time and end Time
+            new address[](0),
+            startDateTime,
+            endDateTime
         );
         numberOfContests++;
     }
@@ -52,16 +61,26 @@ contract CryptoFantasy is Ownable {
         payable
     {
         Contest storage contest = totalContest[contestId];
+        if (
+            teamsOfContest[contestId][address(msg.sender)].teamOwner !=
+            address(0)
+        ) {
+            revert CryptoFantasy__AlreadyJoinedThisContest();
+        }
         contest.poolPrize += contest.entryFee;
         contest.totalTeams++;
         contest.teamOwners.push(address(msg.sender));
         teamsOfContest[contestId][address(msg.sender)] = Team(
             address(msg.sender),
-            playerIds
+            playerIds,
+            0
         );
         contestPlayedByUser[address(msg.sender)].push(contest);
-        if (msg.value != contest.entryFee)
-            revert CryptoFantasy__JoinMatchFailed();
+        if(block.timestamp < contest.startDateTime) revert CryptoFantasy__ContestNotStartedYet();
+        if(block.timestamp > contest.endDateTime) revert CryptoFantasy__ContestEnded();
+        if (msg.value != contest.entryFee) {
+            revert CryptoFantasy__ValueNotEqualToEntryFee();
+        }
     }
 
     ///@notice get the list of contests played by a particular user
