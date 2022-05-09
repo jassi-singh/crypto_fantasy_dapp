@@ -16,12 +16,29 @@ export default async function getScore(
     })
     .then((scorecard) => {
       console.log(scorecard.statusText)
-      if (scorecard.status === 200)
-        res.status(200).json(calculateScore(scorecard.data.scorecard))
-      else res.status(scorecard.status).json(scorecard.statusText)
+      if (scorecard.status === 200) {
+        const response = {
+          jobId: 0,
+          data: calculateScore(scorecard.data.scorecard),
+          status: 200,
+        }
+        res.status(200).json(response)
+      } else {
+        const response = {
+          jobId: 0,
+          error: 'Some Error Occured',
+          status: scorecard.status,
+        }
+        res.status(scorecard.status).json(response)
+      }
     })
     .catch((error) => {
-      res.status(500)
+      const response = {
+        jobId: 0,
+        error: error,
+        status: 500,
+      }
+      res.status(500).json(response)
     })
 }
 
@@ -45,7 +62,7 @@ const calculateScore = (scorecard: any) => {
     idx = 0
   for (const item in scoresOfPlayers) {
     res[`player${idx}`] = { id: item, score: scoresOfPlayers[item] }
-    idx++;
+    idx++
   }
   return res
 }
