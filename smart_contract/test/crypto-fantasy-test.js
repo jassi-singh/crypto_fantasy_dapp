@@ -82,6 +82,7 @@ describe("CryptoFantasy ", async () => {
           .plus(Duration.fromObject({ hours: 2 }))
           .toUnixInteger()
       );
+      await moveTime(10);
       await cryptoFantasy
         .connect(addr1)
         .joinMatch(0, playerIds, { value: entryFee });

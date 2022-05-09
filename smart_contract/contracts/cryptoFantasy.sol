@@ -33,6 +33,9 @@ contract CryptoFantasy is Ownable {
 
     ///@notice allow only the contract owner to create the new contests which users can join and play
     ///@param matchId : match id of the real match
+    ///@param fee , entryFee of the contest
+    ///@param startDateTime , start time of the contest
+    ///@param endDateTime end time of the contest 
     function createContest(
         uint256 matchId,
         uint256 fee,

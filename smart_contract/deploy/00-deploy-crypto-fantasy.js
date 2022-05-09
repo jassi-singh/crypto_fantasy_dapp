@@ -11,7 +11,7 @@ module.exports = async function (hre) {
     log: true,
   });
 
-  console.log("     Crypto Fantasy is Deployed at : ", cryptoFantasy.address);
+  console.log("\tCrypto Fantasy is Deployed at : ", cryptoFantasy.address);
 };
 
 module.exports.tags = ["all", "cryptoFantasy"];
