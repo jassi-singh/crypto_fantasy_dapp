@@ -58,11 +58,15 @@ const calculateScore = (scorecard: any) => {
     })
   })
 
-  let res: any = {},
-    idx = 0
-  for (const item in scoresOfPlayers) {
-    res[`player${idx}`] = { id: item, score: scoresOfPlayers[item] }
-    idx++
+  let res: any = {
+    'player-id': [],
+    scores: [],
   }
+
+  for (const item in scoresOfPlayers) {
+    res['player-id'].push(item)
+    res['scores'].push(scoresOfPlayers[item])
+  }
+
   return res
 }
