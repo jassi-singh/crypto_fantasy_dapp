@@ -18,14 +18,14 @@ export default async function getScore(
       console.log(scorecard.statusText)
       if (scorecard.status === 200) {
         const response = {
-          jobId: 0,
+          jobId: process.env.JOB_ID,
           data: calculateScore(scorecard.data.scorecard),
           status: 200,
         }
         res.status(200).json(response)
       } else {
         const response = {
-          jobId: 0,
+          jobId: process.env.JOB_ID,
           error: 'Some Error Occured',
           status: scorecard.status,
         }
@@ -34,7 +34,7 @@ export default async function getScore(
     })
     .catch((error) => {
       const response = {
-        jobId: 0,
+        jobId: process.env.JOB_ID,
         error: error,
         status: 500,
       }
@@ -64,7 +64,7 @@ const calculateScore = (scorecard: any) => {
   }
 
   for (const item in scoresOfPlayers) {
-    res['player-id'].push(item)
+    res['player-id'].push(parseInt(item))
     res['scores'].push(scoresOfPlayers[item])
   }
 
