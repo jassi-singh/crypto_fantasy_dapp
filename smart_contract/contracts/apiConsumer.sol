@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
@@ -10,7 +10,7 @@ contract ApiConsumer is ChainlinkClient, ConfirmedOwner {
     using Strings for uint256;
     uint256 private constant ORACLE_PAYMENT =
         ((0 * LINK_DIVISIBILITY) / 100) * 5;
-    bytes32 private constant JOB_ID = "8c6ff4a0619a446c9c6753232a7b4f56";
+    bytes32 private constant JOB_ID = "412871186b47499fa4926bcda2526674";
 
     constructor() ConfirmedOwner(msg.sender) {
         setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
@@ -28,7 +28,7 @@ contract ApiConsumer is ChainlinkClient, ConfirmedOwner {
     ///@notice function to request chainlink node for the data from api
     ///@param contestId , id of the contest
     ///@param matchId , id of the match
-    ///@param dataType data type of data , if true player id, if false scores 
+    ///@param dataType data type of data , if true player id, if false scores
     function requestContestData(
         uint256 contestId,
         uint256 matchId,

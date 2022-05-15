@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./apiConsumer.sol";
@@ -20,6 +20,7 @@ contract CryptoFantasy is ApiConsumer {
         address[] teamOwners;
         uint256 startDateTime;
         uint256 endDateTime;
+        uint256 joinDeadline;
     }
     struct Team {
         address teamOwner;
@@ -37,11 +38,13 @@ contract CryptoFantasy is ApiConsumer {
     ///@param fee , entryFee of the contest
     ///@param startDateTime , start time of the contest
     ///@param endDateTime end time of the contest
+    ///@param joinDeadline end time of the contest
     function createContest(
         uint256 matchId,
         uint256 fee,
         uint256 startDateTime,
-        uint256 endDateTime
+        uint256 endDateTime,
+        uint256 joinDeadline
     ) external onlyOwner {
         totalContest[numberOfContests] = Contest(
             numberOfContests,
@@ -52,9 +55,16 @@ contract CryptoFantasy is ApiConsumer {
             0,
             new address[](0),
             startDateTime,
-            endDateTime
+            endDateTime,
+            joinDeadline
         );
         numberOfContests++;
+
+        if (
+            startDateTime >= joinDeadline ||
+            startDateTime >= endDateTime ||
+            joinDeadline >= endDateTime
+        ) revert CryptoFantasy__CheckTimingsOfContest();
     }
 
     ///@notice allow user to participate in a upcoming match
@@ -84,6 +94,8 @@ contract CryptoFantasy is ApiConsumer {
             revert CryptoFantasy__ContestNotStartedYet();
         if (block.timestamp > contest.endDateTime)
             revert CryptoFantasy__ContestEnded();
+        if (block.timestamp > contest.joinDeadline)
+            revert CryptoFantasy__JoiningDeadlinePassed();
         if (msg.value != contest.entryFee) {
             revert CryptoFantasy__ValueNotEqualToEntryFee();
         }
@@ -125,15 +137,28 @@ contract CryptoFantasy is ApiConsumer {
         return allTeams;
     }
 
+    ///@notice start finding winner of a contest
+    ///@param contestId : id of the contest whose winner to be calculated
+    function findWinnerOfContest(uint256 contestId) external onlyOwner {
+        Contest memory contest = totalContest[contestId];
+        requestContestData(contestId, contest.apiMatchId, true);
+        requestContestData(contestId, contest.apiMatchId, false);
+        calculatePointsAllTeams(contestId);
+    }
+
     ///@notice calculate the total points of all teams in a contest
     ///@param contestId , is the id of the contest
-    function calculatePointsAllTeams(uint256 contestId) public {
-        Contest memory contest = totalContest[contestId];
+    function calculatePointsAllTeams(uint256 contestId) private {
+        Contest storage contest = totalContest[contestId];
+        uint256 maxScore = 0;
         for (uint256 i = 0; i < contest.totalTeams; i++) {
             Team storage team = teamsOfContest[contestId][
                 contest.teamOwners[i]
             ];
             team.score = calculateScoreOfTeam(team.playerIds, contestId);
+            if (team.score > maxScore) {
+                contest.winner = team.teamOwner;
+            }
         }
     }
 
@@ -146,7 +171,7 @@ contract CryptoFantasy is ApiConsumer {
     ) private view returns (uint256) {
         uint256 score = 0;
         for (uint256 i = 0; i < 11; i++) {
-            score+=scoresOfPlayerInContest[contestId][playerIds[i]];
+            score += scoresOfPlayerInContest[contestId][playerIds[i]];
         }
         return score;
     }

@@ -28,6 +28,9 @@ describe("CryptoFantasy ", async () => {
           .toUnixInteger(),
         DateTime.now()
           .plus(Duration.fromObject({ hours: 2 }))
+          .toUnixInteger(),
+        DateTime.now()
+          .plus(Duration.fromObject({ minutes: 20 }))
           .toUnixInteger()
       );
       contest = await cryptoFantasy.totalContest(0);
@@ -62,9 +65,48 @@ describe("CryptoFantasy ", async () => {
             .toUnixInteger(),
           DateTime.now()
             .plus(Duration.fromObject({ hours: 2 }))
+            .toUnixInteger(),
+          DateTime.now()
+            .plus(Duration.fromObject({ minutes: 50 }))
             .toUnixInteger()
         )
-      ).to.be.revertedWith("Ownable: caller is not the owner");
+      ).to.be.revertedWith("Only callable by owner");
+    });
+
+    it("should not create a new contest as startTime is greater than joinDeadline", async () => {
+      await expect(
+        cryptoFantasy.createContest(
+          1,
+          ethers.utils.parseEther("0.1"),
+          DateTime.now()
+            .plus(Duration.fromObject({ minutes: 10 }))
+            .toUnixInteger(),
+          DateTime.now()
+            .plus(Duration.fromObject({ hours: 2 }))
+            .toUnixInteger(),
+          DateTime.now()
+            .plus(Duration.fromObject({ minutes: 5 }))
+            .toUnixInteger()
+        )
+      ).to.be.revertedWith("CryptoFantasy__CheckTimingsOfContest()");
+    });
+
+    it("should not create a new contest as startTime is greater than endTime", async () => {
+      await expect(
+        cryptoFantasy.createContest(
+          1,
+          ethers.utils.parseEther("0.1"),
+          DateTime.now()
+            .plus(Duration.fromObject({ minutes: 10 }))
+            .toUnixInteger(),
+          DateTime.now()
+            .plus(Duration.fromObject({ minutes: 2 }))
+            .toUnixInteger(),
+          DateTime.now()
+            .plus(Duration.fromObject({ minutes: 50 }))
+            .toUnixInteger()
+        )
+      ).to.be.revertedWith("CryptoFantasy__CheckTimingsOfContest()");
     });
   });
 
@@ -80,6 +122,9 @@ describe("CryptoFantasy ", async () => {
         DateTime.now().toUnixInteger(),
         DateTime.now()
           .plus(Duration.fromObject({ hours: 2 }))
+          .toUnixInteger(),
+        DateTime.now()
+          .plus(Duration.fromObject({ minutes: 10 }))
           .toUnixInteger()
       );
       await moveTime(10);
@@ -141,13 +186,16 @@ describe("CryptoFantasy ", async () => {
           .toUnixInteger(),
         DateTime.now()
           .plus(Duration.fromObject({ hours: 2 }))
+          .toUnixInteger(),
+        DateTime.now()
+          .plus(Duration.fromObject({ minutes: 20 }))
           .toUnixInteger()
       );
     });
 
     it("should not allow the user to join same contest more than once", async () => {
       await moveTime(
-        Duration.fromObject({ minutes: 10 }).shiftTo("seconds").seconds
+        Duration.fromObject({ minutes: 11 }).shiftTo("seconds").seconds
       );
       await cryptoFantasy
         .connect(addr1)
@@ -161,7 +209,7 @@ describe("CryptoFantasy ", async () => {
 
     it("should not allow the user to join with less value than entry fee", async () => {
       await moveTime(
-        Duration.fromObject({ minutes: 10 }).shiftTo("seconds").seconds
+        Duration.fromObject({ minutes: 11 }).shiftTo("seconds").seconds
       );
       await expect(
         cryptoFantasy
@@ -187,6 +235,53 @@ describe("CryptoFantasy ", async () => {
           .connect(addr1)
           .joinMatch(0, playerIds, { value: entryFee })
       ).to.revertedWith("CryptoFantasy__ContestEnded()");
+    });
+
+    it("should not allow user to join match after team submission deadline", async () => {
+      await moveTime(
+        Duration.fromObject({ minutes: 50 }).shiftTo("seconds").seconds
+      );
+      await expect(
+        cryptoFantasy
+          .connect(addr1)
+          .joinMatch(0, playerIds, { value: entryFee })
+      ).to.revertedWith("CryptoFantasy__JoiningDeadlinePassed()");
+    });
+  });
+
+  describe("Find Winner", async () => {
+    const entryFee = ethers.utils.parseEther("1.2");
+    const apiMatchId = 46161;
+    const team1 = [
+      7736, 8095, 8796, 8846, 9204, 9311, 9428, 10276, 10896, 10917, 12226,
+    ];
+    const team2 = [
+      9311, 9428, 10276, 10896, 10917, 12226, 12337, 12926, 13162, 13169, 14190,
+    ];
+    beforeEach(async () => {
+      await cryptoFantasy.createContest(
+        apiMatchId,
+        entryFee,
+        DateTime.now().toUnixInteger(),
+        DateTime.now()
+          .plus(Duration.fromObject({ hours: 2 }))
+          .toUnixInteger(),
+        DateTime.now()
+          .plus(Duration.fromObject({ minutes: 20 }))
+          .toUnixInteger()
+      );
+      await moveTime(10);
+      await cryptoFantasy.joinMatch(0, team1, { value: entryFee });
+      await cryptoFantasy
+        .connect(addr2)
+        .joinMatch(0, team2, { value: entryFee });
+      await moveTime(121);
+    });
+
+    it("should find the winner of a contest", async () => {
+      await cryptoFantasy.findWinnerOfContest(0);
+      const contest = await cryptoFantasy.totalContest(0);
+      expect(contest.winner).to.equal(deployer);
     });
   });
 });
