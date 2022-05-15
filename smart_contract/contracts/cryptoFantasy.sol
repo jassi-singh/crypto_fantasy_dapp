@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./apiConsumer.sol";
 import "./errors.sol";
 
 ///@title Crypto Fantasy is a decentralized fantasy cricket game
 ///@author  Jaswinder Singh   - https://github.com/jassi-singh
 ///@notice Anybody can play fantasy cricket game in a decentralized way with the help of this contract.
-contract CryptoFantasy is Ownable {
+contract CryptoFantasy is ApiConsumer {
     constructor() {}
 
     struct Contest {
@@ -35,7 +36,7 @@ contract CryptoFantasy is Ownable {
     ///@param matchId : match id of the real match
     ///@param fee , entryFee of the contest
     ///@param startDateTime , start time of the contest
-    ///@param endDateTime end time of the contest 
+    ///@param endDateTime end time of the contest
     function createContest(
         uint256 matchId,
         uint256 fee,
@@ -79,8 +80,10 @@ contract CryptoFantasy is Ownable {
             0
         );
         contestPlayedByUser[address(msg.sender)].push(contest);
-        if(block.timestamp < contest.startDateTime) revert CryptoFantasy__ContestNotStartedYet();
-        if(block.timestamp > contest.endDateTime) revert CryptoFantasy__ContestEnded();
+        if (block.timestamp < contest.startDateTime)
+            revert CryptoFantasy__ContestNotStartedYet();
+        if (block.timestamp > contest.endDateTime)
+            revert CryptoFantasy__ContestEnded();
         if (msg.value != contest.entryFee) {
             revert CryptoFantasy__ValueNotEqualToEntryFee();
         }
@@ -120,5 +123,31 @@ contract CryptoFantasy is Ownable {
             allTeams[i] = teamsOfContest[contestId][teamOwners[i]];
         }
         return allTeams;
+    }
+
+    ///@notice calculate the total points of all teams in a contest
+    ///@param contestId , is the id of the contest
+    function calculatePointsAllTeams(uint256 contestId) public {
+        Contest memory contest = totalContest[contestId];
+        for (uint256 i = 0; i < contest.totalTeams; i++) {
+            Team storage team = teamsOfContest[contestId][
+                contest.teamOwners[i]
+            ];
+            team.score = calculateScoreOfTeam(team.playerIds, contestId);
+        }
+    }
+
+    ///@notice calculate the score of the a particular team in a contest and retunrs it
+    ///@param playerIds is array of player ids in a team
+    ///@param contestId is the id of the contest
+    function calculateScoreOfTeam(
+        uint256[11] memory playerIds,
+        uint256 contestId
+    ) private view returns (uint256) {
+        uint256 score = 0;
+        for (uint256 i = 0; i < 11; i++) {
+            score+=scoresOfPlayerInContest[contestId][playerIds[i]];
+        }
+        return score;
     }
 }
