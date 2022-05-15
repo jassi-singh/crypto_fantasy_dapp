@@ -12,14 +12,14 @@ export default async function getScore(
 ) {
   await axios
     .get('https://unofficial-cricbuzz.p.rapidapi.com/matches/get-scorecard', {
-      params: { matchId: req.query.matchId },
+      params: { matchId: req.query.matchId, contestId: req.query.contestId },
     })
     .then((scorecard) => {
       console.log(scorecard.statusText)
       if (scorecard.status === 200) {
         const response = {
           jobId: process.env.JOB_ID,
-          data: calculateScore(scorecard.data.scorecard),
+          data: calculateScore(scorecard.data.scorecard, req.query.contestId),
           status: 200,
         }
         res.status(200).json(response)
@@ -42,7 +42,7 @@ export default async function getScore(
     })
 }
 
-const calculateScore = (scorecard: any) => {
+const calculateScore = (scorecard: any, contestId: any) => {
   let scoresOfPlayers: any = {}
   scorecard.forEach((inning: any) => {
     inning.batsman.forEach((player: any, index: number) => {
@@ -59,8 +59,8 @@ const calculateScore = (scorecard: any) => {
   })
 
   let res: any = {
-    'player-id': [],
-    scores: [],
+    'player-id': [parseInt(contestId)],
+    scores: [parseInt(contestId)],
   }
 
   for (const item in scoresOfPlayers) {
