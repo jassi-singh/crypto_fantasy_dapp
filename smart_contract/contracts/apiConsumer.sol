@@ -85,8 +85,6 @@ contract ApiConsumer is ChainlinkClient, ConfirmedOwner {
         uint256 contestId = data[0];
         for (uint8 i = 1; i < 23; i++)
             scoresOfContest[contestId][i - 1] = data[i];
-
-        getScoresOfPlayersInContest(contestId);
     }
 
     ///@notice combine the scores and player id of a particular contest

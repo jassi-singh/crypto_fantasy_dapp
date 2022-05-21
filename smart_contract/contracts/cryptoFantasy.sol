@@ -139,16 +139,15 @@ contract CryptoFantasy is ApiConsumer {
 
     ///@notice start finding winner of a contest
     ///@param contestId : id of the contest whose winner to be calculated
-    function findWinnerOfContest(uint256 contestId) external onlyOwner {
+    function getContestData(uint256 contestId) external onlyOwner {
         Contest memory contest = totalContest[contestId];
         requestContestData(contestId, contest.apiMatchId, true);
         requestContestData(contestId, contest.apiMatchId, false);
-        calculatePointsAllTeams(contestId);
     }
 
     ///@notice calculate the total points of all teams in a contest
     ///@param contestId , is the id of the contest
-    function calculatePointsAllTeams(uint256 contestId) private {
+    function calculatePointsAllTeams(uint256 contestId) public onlyOwner {
         Contest storage contest = totalContest[contestId];
         uint256 maxScore = 0;
         for (uint256 i = 0; i < contest.totalTeams; i++) {
@@ -168,7 +167,7 @@ contract CryptoFantasy is ApiConsumer {
     function calculateScoreOfTeam(
         uint256[11] memory playerIds,
         uint256 contestId
-    ) private view returns (uint256) {
+    ) public view onlyOwner returns (uint256) {
         uint256 score = 0;
         for (uint256 i = 0; i < 11; i++) {
             score += scoresOfPlayerInContest[contestId][playerIds[i]];
