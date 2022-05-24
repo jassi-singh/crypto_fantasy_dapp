@@ -26,8 +26,7 @@ interface LinkItemProps {
 }
 
 const LinkItems: Array<LinkItemProps> = [
-  { name: 'Upcoming', icon: FiCompass, link: '/upcoming' },
-  { name: 'Live Scores', icon: CgMediaLive, link: '/liveScores' },
+  { name: 'Explore', icon: FiCompass, link: '/explore' },
   { name: 'My Contests', icon: GiRunningNinja, link: '/myContests' },
   { name: 'Stats', icon: BiStats, link: '/stats' },
   { name: 'How To Play', icon: BiQuestionMark, link: '/howToPlay' },
@@ -46,12 +45,12 @@ const Sidebar = ({ onClose, ...rest }: SidebarProps) => {
       {...rest}
     >
       <Flex h="20" alignItems="center" mx="8" justifyContent="space-between">
-        <Icon fontSize={20} color="green.500" as={MdSportsCricket} />
+        <Icon fontSize={20} color="purple.500" as={MdSportsCricket} />
         <Text
           fontSize="2xl"
           fontFamily="monospace"
           fontWeight="bold"
-          color="green.500"
+          color="purple.500"
         >
           Real Sports
         </Text>

@@ -48,7 +48,7 @@ contract ApiConsumer is ChainlinkClient, ConfirmedOwner {
             "get",
             string(
                 abi.encodePacked(
-                    "https://crypto-fantasy-dapp.vercel.app/api/score?matchId=",
+                    "https://crypto-fantasy-dapp.vercel.app/api/fantasyPoints?matchId=",
                     matchId.toString(),
                     "&contestId=",
                     contestId.toString()

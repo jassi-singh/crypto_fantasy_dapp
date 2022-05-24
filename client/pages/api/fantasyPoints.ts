@@ -1,17 +1,15 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import axios, { Axios, AxiosResponse } from 'axios'
-axios.defaults.headers.common = {
-  'X-RapidAPI-Host': 'unofficial-cricbuzz.p.rapidapi.com',
-  'X-RapidAPI-Key': `${process.env.API_KEY}`,
-}
+import axios from 'axios'
+import { axiosInitialParams } from '../../utills/utills'
+axios.create(axiosInitialParams)
 
 export default async function getScore(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   await axios
-    .get('https://unofficial-cricbuzz.p.rapidapi.com/matches/get-scorecard', {
+    .get('/matches/get-scorecard', {
       params: { matchId: req.query.matchId, contestId: req.query.contestId },
     })
     .then((scorecard) => {

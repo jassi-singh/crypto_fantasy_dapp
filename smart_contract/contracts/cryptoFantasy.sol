@@ -10,12 +10,16 @@ import "./errors.sol";
 contract CryptoFantasy is ApiConsumer {
     constructor() {}
 
+    event ContestCreated(uint256 contestId,uint256 apiMatchId,uint256 entryFee);
+    event ContestJoined(uint256 contestId,uint256 apiMatchId,address teamOwner,uint256[11] team);
+    event TeamsScoreInContestCalculated(uint256 contestId,uint256 apiMatchId,address[] teamOwners,uint256[] teamScores);
+
     struct Contest {
         uint256 contestId;
         uint256 apiMatchId;
         uint256 entryFee;
         uint256 poolPrize;
-        address winner;
+        address payable winner;
         uint256 totalTeams;
         address[] teamOwners;
         uint256 startDateTime;
@@ -31,6 +35,7 @@ contract CryptoFantasy is ApiConsumer {
     mapping(uint256 => Contest) public totalContest;
     mapping(uint256 => mapping(address => Team)) public teamsOfContest;
     mapping(address => Contest[]) public contestPlayedByUser;
+    mapping(uint256 => Contest) public contestByMatchId;
     uint256 public numberOfContests;
 
     ///@notice allow only the contract owner to create the new contests which users can join and play
@@ -46,19 +51,21 @@ contract CryptoFantasy is ApiConsumer {
         uint256 endDateTime,
         uint256 joinDeadline
     ) external onlyOwner {
+        numberOfContests++;
         totalContest[numberOfContests] = Contest(
             numberOfContests,
             matchId,
             fee,
             0,
-            address(0),
+            payable(0),
             0,
             new address[](0),
             startDateTime,
             endDateTime,
             joinDeadline
         );
-        numberOfContests++;
+        contestByMatchId[matchId] = totalContest[numberOfContests];
+        emit ContestCreated(numberOfContests,matchId,fee);
 
         if (
             startDateTime >= joinDeadline ||
@@ -90,6 +97,8 @@ contract CryptoFantasy is ApiConsumer {
             0
         );
         contestPlayedByUser[address(msg.sender)].push(contest);
+        emit ContestJoined(contestId,contest.apiMatchId,msg.sender,playerIds);
+
         if (block.timestamp < contest.startDateTime)
             revert CryptoFantasy__ContestNotStartedYet();
         if (block.timestamp > contest.endDateTime)
@@ -99,6 +108,17 @@ contract CryptoFantasy is ApiConsumer {
         if (msg.value != contest.entryFee) {
             revert CryptoFantasy__ValueNotEqualToEntryFee();
         }
+    }
+
+    ///@notice returns if contest for given matchIds exist or not
+    ///@param matchIds array of uint256
+    function checkContestsExist(uint256[] memory matchIds)public view returns(bool[] memory){
+        bool[] memory result = new bool[](matchIds.length);
+        for (uint256 i = 0; i < matchIds.length; i++) {
+            if(contestByMatchId[matchIds[i]].contestId!=0) result[i]=true;
+            else result[i] = false;
+        }
+        return result;
     }
 
     ///@notice get the list of contests played by a particular user
@@ -150,15 +170,21 @@ contract CryptoFantasy is ApiConsumer {
     function calculatePointsAllTeams(uint256 contestId) public onlyOwner {
         Contest storage contest = totalContest[contestId];
         uint256 maxScore = 0;
+        address[] memory teamOwners;
+        uint256[] memory teamScores;
         for (uint256 i = 0; i < contest.totalTeams; i++) {
             Team storage team = teamsOfContest[contestId][
                 contest.teamOwners[i]
             ];
             team.score = calculateScoreOfTeam(team.playerIds, contestId);
+            teamScores[i] = team.score;
+            teamOwners[i] = team.teamOwner;
             if (team.score > maxScore) {
-                contest.winner = team.teamOwner;
+                contest.winner = payable(team.teamOwner);
             }
         }
+        contest.winner.transfer(contest.poolPrize);
+        emit TeamsScoreInContestCalculated(contestId,contest.apiMatchId,teamOwners,teamScores);
     }
 
     ///@notice calculate the score of the a particular team in a contest and retunrs it

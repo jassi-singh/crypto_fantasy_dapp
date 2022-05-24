@@ -24,11 +24,11 @@ const NavItem = ({ icon, link, children, ...rest }: NavItemProps) => {
       }}
       aria-selected={router?.pathname === link}
       _selected={{
-        bg: 'green.500',
+        bg: 'purple.500',
         color: 'white',
       }}
       _hover={{
-        bg: 'green.500',
+        bg: 'purple.500',
         color: 'white',
       }}
       {...rest}
