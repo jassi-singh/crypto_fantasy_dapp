@@ -27,8 +27,8 @@ interface LinkItemProps {
 
 const LinkItems: Array<LinkItemProps> = [
   { name: 'Explore', icon: FiCompass, link: '/explore' },
-  { name: 'My Contests', icon: GiRunningNinja, link: '/myContests' },
-  { name: 'Stats', icon: BiStats, link: '/stats' },
+  // { name: 'My Contests', icon: GiRunningNinja, link: '/myContests' },
+  // { name: 'Stats', icon: BiStats, link: '/stats' },
   { name: 'How To Play', icon: BiQuestionMark, link: '/howToPlay' },
 ]
 

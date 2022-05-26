@@ -138,10 +138,7 @@ const Navbar = ({ onOpen, ...rest }: NavbarProps) => {
                 _focus={{ boxShadow: 'none' }}
               >
                 <HStack>
-                  <Jazzicon
-                    diameter={35}
-                    seed={parseInt('4B890C1f05F411', 16)}
-                  />
+                  <Jazzicon diameter={35} seed={parseInt(account?.substring(0,16) ?? '', 16)} />
                   <VStack
                     display={{ base: 'none', md: 'flex' }}
                     alignItems="flex-start"

@@ -1,22 +1,77 @@
 import { useDisclosure } from '@chakra-ui/react'
 import Moralis from 'moralis'
 import React, { useState, useEffect } from 'react'
-import { useMoralis, useWeb3ExecuteFunction } from 'react-moralis'
+import {
+  useMoralis,
+  useMoralisQuery,
+  useWeb3ExecuteFunction,
+} from 'react-moralis'
+import useSWR from 'swr'
 import { contractABI, contractAddress } from '../lib/constants'
 
 export const contractProvider = React.createContext({})
-
+export enum Status {
+  pending,
+  success,
+  failed,
+}
 export const ContractProvider = ({ children }: any) => {
   const [isOwner, setIsOwner] = useState(false)
   const { isWeb3Enabled, account } = useMoralis()
   const [isLoading, setIsLoading] = useState(false)
   const contractProcessor = useWeb3ExecuteFunction()
-  const [transaction, setTransaction] = useState()
+  const { data: upcoming, error: upcomingError } = useSWR([
+    '/matches/list',
+    { matchState: 'upcoming' },
+  ])
+  const { data: live, error: liveError } = useSWR([
+    '/matches/list',
+    { matchState: 'live' },
+  ])
+  const { data: past, error: pastError } = useSWR([
+    '/matches/list',
+    { matchState: 'past' },
+  ])
+  const [allContestByMatchId, setAllContestByMatchId] = useState<
+    Map<string, any>
+  >(new Map())
+  const [transaction, setTransaction] = useState<{
+    title: string
+    data: any
+    status: Status
+  }>()
+  const { data: allContestsDB } = useMoralisQuery(
+    'contests',
+    (query) => query,
+    [50],
+    {
+      live: true,
+    }
+  )
+
   const {
     isOpen: isTransactionPending,
     onOpen,
     onClose: onStatusModalClose,
   } = useDisclosure()
+
+  /// USE EFFECTS
+
+  useEffect(() => {
+    console.log(upcoming)
+  }, [upcoming])
+
+  useEffect(() => {
+    console.log('contests updated')
+    allContestsDB.map((contest) => {
+      const data = contest.toJSON()
+      setAllContestByMatchId((prev) => {
+        const newMap = new Map(prev)
+        newMap.set(data?.apiMatchId, data)
+        return newMap
+      })
+    })
+  }, [allContestsDB])
 
   useEffect(() => {
     contractProcessor.fetch({
@@ -31,6 +86,8 @@ export const ContractProvider = ({ children }: any) => {
     })
   }, [account])
 
+  ///Functions
+
   const createContest = async (params: {
     matchId: string
     fee: string
@@ -39,7 +96,6 @@ export const ContractProvider = ({ children }: any) => {
     joinDeadline: number
   }) => {
     setIsLoading(true)
-    console.log('creating contest .....')
     const tx: any = await contractProcessor.fetch({
       params: {
         abi: contractABI,
@@ -54,105 +110,85 @@ export const ContractProvider = ({ children }: any) => {
         setIsLoading(false)
       },
     })
+
     onOpen()
-    setTransaction(tx)
+    setTransaction({
+      title: 'Creating Contest',
+      data: tx,
+      status: Status.pending,
+    })
     await tx
       ?.wait()
       .then((result: any) => {
-        setTransaction(result)
+        setTransaction({
+          title: 'Contest Created',
+          data: result,
+          status: Status.success,
+        })
       })
       .catch((err: any) => {
-        setTransaction(err)
+        console.error(err)
+        setTransaction((prev) => {
+          const newVal = {
+            title: 'Contest Creation Failed',
+            data: prev?.data,
+            status: Status.failed,
+          }
+          return newVal
+        })
       })
-    // setTransaction(tx)
-    // onStatusModalClose()
   }
 
   const joinContest = async (matchId: any, players: Array<number>) => {
     setIsLoading(true)
-    console.log(matchId)
-    await contractProcessor.fetch({
+    const contest = allContestByMatchId?.get(matchId.toString())
+    const params = {
+      contestId: contest?.contestId,
+      playerIds: players,
+    }
+    console.log(params)
+    const tx: any = await contractProcessor.fetch({
       params: {
         abi: contractABI,
         contractAddress: contractAddress,
-        functionName: 'contestByMatchId',
-        params: { '': matchId },
+        functionName: 'joinMatch',
+        params: params,
+        msgValue: contest?.entryFee,
       },
       onError: (err: any) => {
-        console.log('Error from contest by matchid ', err)
+        console.log('Error from join match', err)
       },
-      onSuccess: (data: any) => {
-        console.log(data.entryFee.toString())
-        const params = {
-          contestId: data.contestId.toNumber(),
-          playerIds: players,
-        }
-        console.log(params.playerIds)
-        contractProcessor.fetch({
-          params: {
-            abi: contractABI,
-            contractAddress: contractAddress,
-            functionName: 'joinMatch',
-            params: params,
-            msgValue: data.entryFee.toString(),
-          },
-          onError: (err: any) => {
-            console.log('Error from join match', err)
-          },
-          onComplete: () => {
-            setIsLoading(false)
-          },
+      onComplete: () => {
+        setIsLoading(false)
+      },
+    })
+
+    onOpen()
+    setTransaction({
+      title: 'Joining Contest',
+      data: tx,
+      status: Status.pending,
+    })
+    await tx
+      ?.wait()
+      .then((result: any) => {
+        setTransaction({
+          title: 'Contest Joined',
+          data: result,
+          status: Status.success,
         })
-      },
-    })
-  }
-
-  const checkIfContestExistByMatchId = (
-    live: any,
-    upcoming: any,
-    past: any
-  ) => {
-    const matchIdsToBool = new Map()
-
-    live?.typeMatches?.map((matches: any) =>
-      matches?.seriesAdWrapper?.map((item: any) =>
-        item?.seriesMatches?.matches?.map((allMatch: any) =>
-          matchIdsToBool.set(allMatch?.matchInfo?.matchId, false)
-        )
-      )
-    )
-    upcoming?.typeMatches?.map((matches: any) =>
-      matches?.seriesAdWrapper?.map((item: any) =>
-        item?.seriesMatches?.matches?.map((allMatch: any) =>
-          matchIdsToBool.set(allMatch?.matchInfo?.matchId, false)
-        )
-      )
-    )
-    past?.typeMatches?.map((matches: any) =>
-      matches?.seriesAdWrapper?.map((item: any) =>
-        item?.seriesMatches?.matches?.map((allMatch: any) =>
-          matchIdsToBool.set(allMatch?.matchInfo?.matchId, false)
-        )
-      )
-    )
-    console.log(matchIdsToBool)
-    const matchIds = Array.from(matchIdsToBool.keys())
-    console.log(matchIds)
-
-    contractProcessor.fetch({
-      params: {
-        abi: contractABI,
-        contractAddress: contractAddress,
-        functionName: 'checkContestsExist',
-        params: { matchIds: matchIds },
-      },
-      onError: (err: any) => {
-        console.log(err)
-      },
-      onSuccess: (data: any) => {
-        console.log(data)
-      },
-    })
+      })
+      .catch((err: any) => {
+        console.error(err)
+        setTransaction((prev) => {
+          const newVal = {
+            title: 'Contest Joining Failed',
+            data: prev?.data,
+            status: Status.failed,
+          }
+          return newVal
+        })
+      })
   }
 
   return (
@@ -162,9 +198,15 @@ export const ContractProvider = ({ children }: any) => {
         isLoading,
         isTransactionPending,
         transaction,
+        allContestByMatchId,
+        upcoming,
+        upcomingError,
+        live,
+        liveError,
+        past,
+        pastError,
         onStatusModalClose,
         createContest,
-        checkIfContestExistByMatchId,
         joinContest,
       }}
     >
