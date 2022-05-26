@@ -15,6 +15,6 @@
     "jsx": "preserve",
     "incremental": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "context/metamaskProvider.jsx", "pages/explore.tsx", "cloudFolderMoralis/cloud.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "context/metamaskProvider.jsx", "pages/explore.tsx", "cloudFolderMoralis/cloud.js", "pages/_app.tsx"],
   "exclude": ["node_modules"]
 }
