@@ -99,16 +99,18 @@ const MatchCard = ({ matchData }: any) => {
               </StatNumber>
               <StatLabel fontSize="xs">Entry Fee</StatLabel>
             </Stat>
+            {!isRunning && contestData?.winner.toLowerCase() ===
+          '0x0000000000000000000000000000000000000000'  && (
+              <Button colorScheme="purple" onClick={onOpen}>
+                Calculate Winner
+              </Button>
+            )}
             {isWeb3Enabled &&
               isRunning &&
               (isOwner ? (
-                !contestData?.contestId ? (
+                !contestData?.contestId && (
                   <Button colorScheme="purple" onClick={onOpen}>
                     Create Contest
-                  </Button>
-                ) : (
-                  <Button disabled colorScheme="purple" onClick={onOpen}>
-                    Calculate Winner
                   </Button>
                 )
               ) : !contestData?.teamOwners?.some(

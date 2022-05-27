@@ -2,7 +2,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import { axiosInitialParams } from '../../utills/utills'
-axios.create(axiosInitialParams)
+
+axios.defaults.baseURL = axiosInitialParams.baseUrl
+axios.defaults.headers.common = axiosInitialParams.headers
 
 export default async function getScore(
   req: NextApiRequest,
@@ -10,7 +12,7 @@ export default async function getScore(
 ) {
   await axios
     .get('/matches/get-scorecard', {
-      params: { matchId: req.query.matchId, contestId: req.query.contestId },
+      params: { matchId: req.query.matchId },
     })
     .then((scorecard) => {
       console.log(scorecard.statusText)

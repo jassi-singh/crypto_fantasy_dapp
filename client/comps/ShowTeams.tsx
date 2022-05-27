@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   HStack,
+  Icon,
   ModalBody,
   ModalCloseButton,
   ModalContent,
@@ -15,6 +16,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
+import { FaCrown } from 'react-icons/fa'
 import Jazzicon from 'react-jazzicon'
 import { useMoralis, useMoralisQuery } from 'react-moralis'
 
@@ -38,10 +40,41 @@ const ShowTeams = ({ onClose, contest }: any) => {
     <ModalContent>
       <ModalHeader>
         Participants of Contest #{contest?.contestId}
-        <Text fontSize={'xs'}>Scores & Winner will be calculated after the match is over</Text>
+        <Text fontSize={'xs'}>
+          Scores & Winner will be calculated after the match is over
+        </Text>
       </ModalHeader>
       <ModalCloseButton />
       <ModalBody>
+        {contest?.winner.toLowerCase() ===
+          '0x0000000000000000000000000000000000000000' && (
+          <HStack
+            shadow="lg"
+            borderRadius="lg"
+            m="4"
+            p="4"
+            bg={useColorModeValue('yellow.300', 'yellow.500')}
+          >
+            <Box>
+              <Icon color={'white'} as={FaCrown}></Icon>
+            </Box>
+            <HStack>
+              <Jazzicon
+                diameter={35}
+                seed={parseInt(contest?.winner?.substring(0, 16) ?? '', 16)}
+              />
+              <Text fontStyle={'italic'} fontWeight="medium" fontSize={'xs'}>
+                {contest?.winner}
+              </Text>
+            </HStack>
+            <Stat display={'flex'} justifyContent="flex-end">
+              <StatNumber fontSize="sm">
+                #{teams.get(contest?.winner.toLowerCase())?.teamScores ?? 'NA'}
+              </StatNumber>
+              <StatLabel fontSize="xs">Score</StatLabel>
+            </Stat>
+          </HStack>
+        )}
         {contest?.teamOwners.map((owner: any) => (
           <Skeleton isLoaded={!isLoading}>
             <HStack
