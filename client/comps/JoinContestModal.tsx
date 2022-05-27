@@ -20,6 +20,7 @@ import {
   AvatarBadge,
   Flex,
   useColorMode,
+  Center,
 } from '@chakra-ui/react'
 import React, { useContext, useEffect, useState } from 'react'
 import { AiOutlineClose } from 'react-icons/ai'
@@ -56,6 +57,7 @@ const JoinContestModal = ({ matchData, onClose }: any) => {
       </ModalHeader>
       <ModalCloseButton />
       <ModalBody>
+        {!players1 ? <Center>Teams not declared yet</Center>:
         <Tabs colorScheme="purple" isFitted variant="enclosed">
           <TabList mb="1em">
             <Tab>{matchData?.team1.teamSName}</Tab>
@@ -237,7 +239,7 @@ const JoinContestModal = ({ matchData, onClose }: any) => {
               ))}
             </TabPanel>
           </TabPanels>
-        </Tabs>
+        </Tabs>}
       </ModalBody>
 
       <ModalFooter>
