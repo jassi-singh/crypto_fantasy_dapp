@@ -41,7 +41,7 @@ export const ContractProvider = ({ children }: any) => {
     status: Status
   }>()
   const { data: allContestsDB } = useMoralisQuery(
-    'contests',
+    'totalContests',
     (query) => query,
     [50],
     {
@@ -191,6 +191,104 @@ export const ContractProvider = ({ children }: any) => {
       })
   }
 
+  const getOracleData = async (contestId: any) => {
+    setIsLoading(true)
+    const params = {
+      contestId: contestId,
+    }
+    console.log(params)
+    const tx: any = await contractProcessor.fetch({
+      params: {
+        abi: contractABI,
+        contractAddress: contractAddress,
+        functionName: 'getContestData',
+        params: params,
+      },
+      onError: (err: any) => {
+        console.log('Error from getOracleData', err)
+      },
+      onComplete: () => {
+        setIsLoading(false)
+      },
+    })
+
+    onOpen()
+    setTransaction({
+      title: 'Sending Request to Oracle for contest Data',
+      data: tx,
+      status: Status.pending,
+    })
+    await tx
+      ?.wait()
+      .then((result: any) => {
+        setTransaction({
+          title: 'Request Sent',
+          data: result,
+          status: Status.success,
+        })
+      })
+      .catch((err: any) => {
+        console.error(err)
+        setTransaction((prev) => {
+          const newVal = {
+            title: 'Request Failed',
+            data: prev?.data,
+            status: Status.failed,
+          }
+          return newVal
+        })
+      })
+  }
+
+  const findWinner = async (contestId: any, matchId: any) => {
+    setIsLoading(true)
+    const params = {
+      contestId: contestId,
+    }
+    console.log(params)
+    const tx: any = await contractProcessor.fetch({
+      params: {
+        abi: contractABI,
+        contractAddress: contractAddress,
+        functionName: 'findWinner',
+        params: params,
+      },
+      onError: (err: any) => {
+        console.log('Error from Find Winner', err)
+      },
+      onComplete: () => {
+        setIsLoading(false)
+      },
+    })
+
+    onOpen()
+    setTransaction({
+      title: 'Finding Winner of the contest',
+      data: tx,
+      status: Status.pending,
+    })
+    await tx
+      ?.wait()
+      .then((result: any) => {
+        setTransaction({
+          title: `Winner is Declared Check Participant list`,
+          data: result,
+          status: Status.success,
+        })
+      })
+      .catch((err: any) => {
+        console.error(err)
+        setTransaction((prev) => {
+          const newVal = {
+            title: 'Failed',
+            data: prev?.data,
+            status: Status.failed,
+          }
+          return newVal
+        })
+      })
+  }
+
   return (
     <contractProvider.Provider
       value={{
@@ -205,6 +303,8 @@ export const ContractProvider = ({ children }: any) => {
         liveError,
         past,
         pastError,
+        getOracleData,
+        findWinner,
         onStatusModalClose,
         createContest,
         joinContest,

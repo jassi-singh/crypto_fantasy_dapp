@@ -10,7 +10,7 @@ import {
 import { IconType } from 'react-icons'
 import { FiCompass } from 'react-icons/fi'
 import { CgMediaLive } from 'react-icons/cg'
-import { BiStats, BiQuestionMark } from 'react-icons/bi'
+import { BiStats, BiQuestionMark, BiCalculator } from 'react-icons/bi'
 import { GiRunningNinja } from 'react-icons/gi'
 import { MdSportsCricket } from 'react-icons/md'
 import NavItem from './NavItem'
@@ -29,7 +29,7 @@ const LinkItems: Array<LinkItemProps> = [
   { name: 'Explore', icon: FiCompass, link: '/explore' },
   // { name: 'My Contests', icon: GiRunningNinja, link: '/myContests' },
   // { name: 'Stats', icon: BiStats, link: '/stats' },
-  { name: 'How To Play', icon: BiQuestionMark, link: '/howToPlay' },
+  { name: 'Points System', icon: BiCalculator, link: '/pointsSystem' },
 ]
 
 const Sidebar = ({ onClose, ...rest }: SidebarProps) => {

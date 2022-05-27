@@ -57,8 +57,8 @@ const Navbar = ({ onOpen, ...rest }: NavbarProps) => {
       case '/stats':
         setTitle('Stats')
         break
-      case '/howToPlay':
-        setTitle('How To Play')
+      case '/pointsSystem':
+        setTitle('Fantasy Points System')
         break
       default:
         setTitle('Explore')

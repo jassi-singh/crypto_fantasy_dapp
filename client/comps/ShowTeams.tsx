@@ -21,7 +21,7 @@ import Jazzicon from 'react-jazzicon'
 import { useMoralis, useMoralisQuery } from 'react-moralis'
 
 const ShowTeams = ({ onClose, contest }: any) => {
-  const { data, isLoading } = useMoralisQuery('contestTeams', (query) =>
+  const { data, isLoading } = useMoralisQuery('allTeams', (query) =>
     query.equalTo('contestId', contest?.contestId)
   )
   const [teams, setTeams] = useState(new Map<string, any>())
@@ -46,7 +46,7 @@ const ShowTeams = ({ onClose, contest }: any) => {
       </ModalHeader>
       <ModalCloseButton />
       <ModalBody>
-        {contest?.winner.toLowerCase() ===
+        {contest?.winner.toLowerCase() !==
           '0x0000000000000000000000000000000000000000' && (
           <HStack
             shadow="lg"

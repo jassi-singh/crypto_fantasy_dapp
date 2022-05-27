@@ -20,8 +20,8 @@ contract ApiConsumer is ChainlinkClient, ConfirmedOwner {
     mapping(uint256 => mapping(uint256 => uint256))
         internal scoresOfPlayerInContest;
 
-    mapping(uint256 => uint256[22]) private scoresOfContest;
-    mapping(uint256 => uint256[22]) private playersOfContest;
+    mapping(uint256 => uint256[22]) internal scoresOfContest;
+    mapping(uint256 => uint256[22]) internal playersOfContest;
 
     event RequestFulfilledEvent(bytes32 indexed requestId, uint256[] data);
 
@@ -87,13 +87,4 @@ contract ApiConsumer is ChainlinkClient, ConfirmedOwner {
             scoresOfContest[contestId][i - 1] = data[i];
     }
 
-    ///@notice combine the scores and player id of a particular contest
-    ///@param contestId id of the contest
-    function getScoresOfPlayersInContest(uint256 contestId) internal {
-        for (uint256 i = 0; i < 22; i++) {
-            scoresOfPlayerInContest[contestId][
-                playersOfContest[contestId][i]
-            ] = scoresOfContest[contestId][i];
-        }
-    }
 }

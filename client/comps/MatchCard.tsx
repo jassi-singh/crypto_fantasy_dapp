@@ -37,8 +37,14 @@ const MatchCard = ({ matchData }: any) => {
   //   expiryTimestamp: new Date(parseInt(matchData?.endDate)),
   // })
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const {
+    isOpen: isOpenShowParticipants,
+    onOpen: onOpenShowParticipants,
+    onClose: onCloseShowParticipants,
+  } = useDisclosure()
   const { isWeb3Enabled, account, chainId } = useMoralis()
-  const { isOwner, allContestByMatchId }: any = useContext(contractProvider)
+  const { isOwner, allContestByMatchId, getOracleData, findWinner }: any =
+    useContext(contractProvider)
   const [contestData, setContestData] = useState<any>()
 
   useEffect(() => {
@@ -99,32 +105,53 @@ const MatchCard = ({ matchData }: any) => {
               </StatNumber>
               <StatLabel fontSize="xs">Entry Fee</StatLabel>
             </Stat>
-            {!isRunning && contestData?.winner.toLowerCase() ===
-          '0x0000000000000000000000000000000000000000'  && (
-              <Button colorScheme="purple" onClick={onOpen}>
-                Calculate Winner
-              </Button>
-            )}
+            {!isRunning &&
+              isOwner &&
+              contestData?.winner.toLowerCase() ===
+                '0x0000000000000000000000000000000000000000' && (
+                <HStack>
+                  <Button
+                    onClick={() => {
+                      getOracleData(contestData?.contestId)
+                    }}
+                  >
+                    Get Data from Oracel
+                  </Button>
+                  <Button
+                    colorScheme="purple"
+                    onClick={() => {
+                      findWinner(
+                        contestData?.contestId,
+                        contestData?.apiMatchId
+                      )
+                    }}
+                  >
+                    Find Winner
+                  </Button>
+                </HStack>
+              )}
             {isWeb3Enabled &&
               isRunning &&
-              (isOwner ? (
-                !contestData?.contestId && (
-                  <Button colorScheme="purple" onClick={onOpen}>
-                    Create Contest
-                  </Button>
-                )
-              ) : !contestData?.teamOwners?.some(
-                  (owner: string) =>
-                    owner.toUpperCase() == account?.toUpperCase()
-                ) ? (
-                <Button colorScheme="purple" onClick={onOpen}>
-                  Join Contest
-                </Button>
-              ) : (
-                <Button colorScheme="purple" onClick={onOpen}>
-                  Show Participants
-                </Button>
-              ))}
+              (isOwner
+                ? !contestData?.contestId && (
+                    <Button colorScheme="purple" onClick={onOpen}>
+                      Create Contest
+                    </Button>
+                  )
+                : !contestData?.teamOwners?.some(
+                    (owner: string) =>
+                      owner.toUpperCase() == account?.toUpperCase()
+                  ) && (
+                    <Button colorScheme="purple" onClick={onOpen}>
+                      Join Contest
+                    </Button>
+                  ))}
+
+            {contestData && (
+              <Button colorScheme="purple" onClick={onOpenShowParticipants}>
+                Show Participants
+              </Button>
+            )}
           </HStack>
         </Box>
       )}
@@ -139,13 +166,22 @@ const MatchCard = ({ matchData }: any) => {
         <ModalOverlay />
         {isOwner ? (
           <CreateContestModal onClose={onClose} matchData={matchData} />
-        ) : !contestData?.teamOwners?.some(
-            (owner: string) => owner.toUpperCase() == account?.toUpperCase()
-          ) ? (
-          <JoinContestModal onClose={onClose} matchData={matchData} />
         ) : (
-          <ShowTeams onClose={onClose} contest={contestData} />
+          !contestData?.teamOwners?.some(
+            (owner: string) => owner.toUpperCase() == account?.toUpperCase()
+          ) && <JoinContestModal onClose={onClose} matchData={matchData} />
         )}
+      </Modal>
+
+      <Modal
+        scrollBehavior="inside"
+        size="xl"
+        colorScheme="purple"
+        isOpen={isOpenShowParticipants}
+        onClose={onCloseShowParticipants}
+      >
+        <ModalOverlay />
+        <ShowTeams onClose={onClose} contest={contestData} />
       </Modal>
     </>
   )
