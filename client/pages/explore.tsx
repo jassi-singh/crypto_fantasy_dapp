@@ -27,7 +27,7 @@ const explore = () => {
     'Domestic',
     'Women',
   ]
-  const [selectedMatchType, setSelectedMatchType] = useState(matchTypes[0])
+  const [selectedMatchType, setSelectedMatchType] = useState(matchTypes[1])
   const { live, upcoming, past, liveError, upcomingError, pastError }: any =
     useContext(contractProvider)
   if (upcomingError || liveError || pastError)
