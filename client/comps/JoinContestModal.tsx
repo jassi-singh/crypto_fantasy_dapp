@@ -21,6 +21,7 @@ import {
   Flex,
   useColorMode,
   Center,
+  Spinner,
 } from '@chakra-ui/react'
 import React, { useContext, useEffect, useState } from 'react'
 import { AiOutlineClose } from 'react-icons/ai'
@@ -49,6 +50,10 @@ const JoinContestModal = ({ matchData, onClose }: any) => {
   const [myTeam1, setMyTeam1] = useState<Array<any>>([])
   const [myTeam2, setMyTeam2] = useState<Array<any>>([])
 
+  useEffect(() => {
+    console.log(players1)
+  }, [players1])
+
   return (
     <ModalContent>
       <ModalHeader>
@@ -57,7 +62,7 @@ const JoinContestModal = ({ matchData, onClose }: any) => {
       </ModalHeader>
       <ModalCloseButton />
       <ModalBody>
-        {!players1 ? <Center>Teams not declared yet</Center>:
+        {/* {!players1 && !players1?.player ? <Center>Teams not declared yet</Center>: */}
         <Tabs colorScheme="purple" isFitted variant="enclosed">
           <TabList mb="1em">
             <Tab>{matchData?.team1.teamSName}</Tab>
@@ -73,92 +78,106 @@ const JoinContestModal = ({ matchData, onClose }: any) => {
           </TabList>
           <TabPanels overflow="auto" height={96}>
             <TabPanel>
-              {players1?.player[0].player.map((player: any) => (
-                <Box
-                  key={player?.id}
-                  shadow="lg"
-                  borderRadius="lg"
-                  m="4"
-                  p="4"
-                  bg={useColorModeValue('white', 'gray.800')}
-                  display="flex"
-                  justifyContent="space-between"
-                  cursor="pointer"
-                  aria-selected={myTeam1.some((e) => e.id === player?.id)}
-                  aria-disabled={
-                    (myTeam1.length === 7 ||
-                      myTeam1.length + myTeam2.length === 11) &&
-                    !myTeam1
-                      .map(function (x) {
-                        return x.id
-                      })
-                      .includes(player.id)
-                  }
-                  _disabled={{ opacity: '0.5', pointerEvents: 'none' }}
-                  _hover={{ bg: 'purple.300' }}
-                  _selected={{ boxShadow: 'outline' }}
-                  onClick={async () => {
-                    setMyTeam1((prev) => {
-                      const idx = prev
-                        .map(function (x) {
-                          return x.id
+              {players1 ? (
+                players1?.player ? (
+                  players1?.player[0]?.player?.map((player: any) => (
+                    <Box
+                      key={player?.id}
+                      shadow="lg"
+                      borderRadius="lg"
+                      m="4"
+                      p="4"
+                      bg={useColorModeValue('white', 'gray.800')}
+                      display="flex"
+                      justifyContent="space-between"
+                      cursor="pointer"
+                      aria-selected={myTeam1.some((e) => e.id === player?.id)}
+                      aria-disabled={
+                        (myTeam1.length === 7 ||
+                          myTeam1.length + myTeam2.length === 11) &&
+                        !myTeam1
+                          .map(function (x) {
+                            return x.id
+                          })
+                          .includes(player.id)
+                      }
+                      _disabled={{ opacity: '0.5', pointerEvents: 'none' }}
+                      _hover={{ bg: 'purple.300' }}
+                      _selected={{ boxShadow: 'outline' }}
+                      onClick={async () => {
+                        setMyTeam1((prev) => {
+                          const idx = prev
+                            .map(function (x) {
+                              return x.id
+                            })
+                            .indexOf(player.id)
+                          const newArray = [...prev]
+                          if (idx == -1) newArray.push(player)
+                          else newArray.splice(idx, 1)
+                          return newArray
                         })
-                        .indexOf(player.id)
-                      const newArray = [...prev]
-                      if (idx == -1) newArray.push(player)
-                      else newArray.splice(idx, 1)
-                      return newArray
-                    })
-                  }}
-                >
-                  <Text>{player?.name}</Text>
-                  <Tag colorScheme="purple">{player?.role}</Tag>
-                </Box>
-              ))}
+                      }}
+                    >
+                      <Text>{player?.name}</Text>
+                      <Tag colorScheme="purple">{player?.role}</Tag>
+                    </Box>
+                  ))
+                ) : (
+                  <Center>Team Not declared yet</Center>
+                )
+              ) : (
+                <Center>
+                  <Spinner />
+                </Center>
+              )}
             </TabPanel>
             <TabPanel>
-              {players2?.player[0].player.map((player: any) => (
-                <Box
-                  key={player?.id}
-                  shadow="lg"
-                  borderRadius="lg"
-                  m="4"
-                  p="4"
-                  bg={useColorModeValue('white', 'gray.800')}
-                  display="flex"
-                  justifyContent="space-between"
-                  cursor="pointer"
-                  aria-selected={myTeam2.some((e) => e.id === player?.id)}
-                  aria-disabled={
-                    (myTeam2.length === 7 ||
-                      myTeam1.length + myTeam2.length === 11) &&
-                    !myTeam2
-                      .map(function (x) {
-                        return x.id
-                      })
-                      .includes(player.id)
-                  }
-                  _disabled={{ opacity: '0.5', pointerEvents: 'none' }}
-                  _hover={{ bg: 'purple.300' }}
-                  _selected={{ boxShadow: 'outline' }}
-                  onClick={async () => {
-                    setMyTeam2((prev) => {
-                      const idx = prev
+              {players2?.player ? (
+                players2?.player[0]?.player?.map((player: any) => (
+                  <Box
+                    key={player?.id}
+                    shadow="lg"
+                    borderRadius="lg"
+                    m="4"
+                    p="4"
+                    bg={useColorModeValue('white', 'gray.800')}
+                    display="flex"
+                    justifyContent="space-between"
+                    cursor="pointer"
+                    aria-selected={myTeam2.some((e) => e.id === player?.id)}
+                    aria-disabled={
+                      (myTeam2.length === 7 ||
+                        myTeam1.length + myTeam2.length === 11) &&
+                      !myTeam2
                         .map(function (x) {
                           return x.id
                         })
-                        .indexOf(player.id)
-                      const newArray = [...prev]
-                      if (idx == -1) newArray.push(player)
-                      else newArray.splice(idx, 1)
-                      return newArray
-                    })
-                  }}
-                >
-                  <Text>{player?.name}</Text>
-                  <Tag colorScheme="purple">{player?.role}</Tag>
-                </Box>
-              ))}
+                        .includes(player.id)
+                    }
+                    _disabled={{ opacity: '0.5', pointerEvents: 'none' }}
+                    _hover={{ bg: 'purple.300' }}
+                    _selected={{ boxShadow: 'outline' }}
+                    onClick={async () => {
+                      setMyTeam2((prev) => {
+                        const idx = prev
+                          .map(function (x) {
+                            return x.id
+                          })
+                          .indexOf(player.id)
+                        const newArray = [...prev]
+                        if (idx == -1) newArray.push(player)
+                        else newArray.splice(idx, 1)
+                        return newArray
+                      })
+                    }}
+                  >
+                    <Text>{player?.name}</Text>
+                    <Tag colorScheme="purple">{player?.role}</Tag>
+                  </Box>
+                ))
+              ) : (
+                <Center>Team Not declared yet</Center>
+              )}
             </TabPanel>
             <TabPanel>
               {myTeam1.map((player: any) => (
@@ -239,7 +258,7 @@ const JoinContestModal = ({ matchData, onClose }: any) => {
               ))}
             </TabPanel>
           </TabPanels>
-        </Tabs>}
+        </Tabs>
       </ModalBody>
 
       <ModalFooter>
